@@ -1,35 +1,29 @@
 import Workspace from '../models/workspace.model.js'
-import task from '../models/task.model.js'
-import User from '../models/user.model.js'
+// import task from '../models/task.model.js'
+// import User from '../models/user.model.js'
 
 export const createWorkspace = async (req, res) => {
-    const { title } = req.body;
-    const userId = req.userId;
-  
+    const { title, description, date } = req.body;
+
+    console.log(req.user)
+
     // Crear un nuevo espacio de trabajo
     const workspace = new Workspace({
         title,
-        users: [userId],
+        description,
         tasks: [], // Se crea una lista de tareas vacía
+        user: req.user.id,
+        date: date,
     });
   
     // Guardar el espacio de trabajo
     await workspace.save();
   
-    // Generar el enlace del espacio de trabajo
-    const workspaceLink = `http://localhost:4000/api/workspace/${workspace._id}`;
-  
     // Enviar la respuesta
-    res.status(201).json({
-      success: true,
-      data: {
-        workspace,
-        workspaceLink,
-      },
-    });
+    res.json({message: 'Workspace Created!'});
 };
   
-const getWorkspace = async (req, res) => {
+export const getWorkspace = async (req, res) => {
     const { workspaceId } = req.params;
   
     // Obtener el espacio de trabajo
@@ -40,6 +34,16 @@ const getWorkspace = async (req, res) => {
       success: true,
       data: workspace,
     });
+};
+
+export const getWorkspaces = async (req, res) => {
+  const workspaces = await Workspace.find({
+    user: req.user.id
+  }).populate('user')
+
+  
+
+  res.json(workspaces)
 };
   
   

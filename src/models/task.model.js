@@ -17,6 +17,10 @@ const taskSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         require: true,
+    },
+    workspace: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Workspace'
     }
 
 }, {

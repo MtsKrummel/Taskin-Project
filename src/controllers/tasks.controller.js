@@ -1,10 +1,21 @@
 import Task from "../models/task.model.js"
+import WorkSpace from '../models/workspace.model.js'
 
 export const getTasks = async (req, res) => {
-    const tasks = await Task.find({
-        user: req.user.id
-    }).populate('user')
-    res.json(tasks)
+    const { id } = req.params
+
+    try {
+        const workspace = await WorkSpace.findById(id).populate('tasks')
+
+        if(!workspace) return res.status(404).json('Workspace not found')
+        
+        const tasks = workspace.tasks
+
+        res.status(500).json(tasks)
+        
+    } catch (error) {
+        
+    }
 }
 
 export const getTask = async (req, res) => {
@@ -14,18 +25,40 @@ export const getTask = async (req, res) => {
 }
 
 export const createTask = async (req, res) => {
+    const { id } = req.params
     const { title, description, date } = req.body
     
+    //Verificar si se paso el parametro
+    if(!id) res.json('Error! ID not found')
+
     console.log(req.user)
 
-    const newTask = new Task({
-        title,
-        description,
-        date,
-        user: req.user.id
-    })
-    
-    return res.json({ message: 'Task created!' })
+    try {
+        // //buscar workspace
+        const workspaceFound = await WorkSpace.findById(id);
+
+        //Verificar que exista
+        if (!workspaceFound) return res.status(404).json('Error! Workspace not found');
+
+        //Crear tarea
+        const newTask = new Task({
+            title,
+            description,
+            date,
+            user: req.user.id,
+            workspace: id
+        })
+        //Guardarlo
+        const taskSaved = await newTask.save();
+
+        // Agregar la tarea al workspace
+        workspaceFound.tasks.push(taskSaved._id);
+        await workspaceFound.save()
+        
+        res.status(201).json({ message: 'Task created!' })
+    } catch (error) {
+        res.status(500).json({ message: error.message })
+    }
 }
 
 export const updateTask = async (req, res) => {
