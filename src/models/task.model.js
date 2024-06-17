@@ -18,11 +18,12 @@ const taskSchema = new mongoose.Schema({
         ref: 'User',
         require: true,
     },
+    //this field was added to be able to link the tasks with a workspace
     workspace: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Workspace'
+        ref: 'Workspace',
+        default:null,
     }
-
 }, {
     timestamps: true,
 });

@@ -8,4 +8,5 @@ export const createTaskSchema = z.object({
         required_error: 'Description is required and must be a string',
     }),
     date: z.string().datetime().optional(),
+    workspaceId: z.string().optional().nullable(),
 })

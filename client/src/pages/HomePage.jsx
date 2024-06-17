@@ -1,5 +1,5 @@
 import NavBar from "../components/NavBar";
-import AuthView from "../components/AuthView";
+import AuthView from "../components/AuthView/AuthView.jsx";
 import { useAuth } from '../context/AuthContext'
 
 const HomePage = () => {
@@ -9,7 +9,6 @@ const HomePage = () => {
   return (
     <div>
         <NavBar />
-        <h1>Esta es la página principal</h1>
 
         {
           isAuthenticated && (

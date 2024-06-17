@@ -1,77 +1,190 @@
-import Task from "../models/task.model.js"
-import WorkSpace from '../models/workspace.model.js'
+//VERSION 1
 
-export const getTasks = async (req, res) => {
-    const { id } = req.params
+// import Task from "../models/task.model.js"
 
-    try {
-        const workspace = await WorkSpace.findById(id).populate('tasks')
+// export const getTasks = async (req, res) => {
+//     const tasks = await Task.find({
+//         user: req.user.id
+//     }).populate('user')
+//     res.json(tasks)
+// }
 
-        if(!workspace) return res.status(404).json('Workspace not found')
-        
-        const tasks = workspace.tasks
+// export const getTask = async (req, res) => {
+//     const taskFound = await Task.findById(req.params.id).populate('user')
+//     if(!taskFound) return res.status(404).json({ message: 'Task not found' })
+//     res.json(taskFound)
+// }
 
-        res.status(500).json(tasks)
-        
-    } catch (error) {
-        
-    }
-}
-
-export const getTask = async (req, res) => {
-    const taskFound = await Task.findById(req.params.id).populate('user')
-    if(!taskFound) return res.status(404).json({ message: 'Task not found' })
-    res.json(taskFound)
-}
-
-export const createTask = async (req, res) => {
-    const { id } = req.params
-    const { title, description, date } = req.body
+// export const createTask = async (req, res) => {
+//     const { title, description, date } = req.body
     
-    //Verificar si se paso el parametro
-    if(!id) res.json('Error! ID not found')
+//     console.log(req.user)
 
-    console.log(req.user)
+//     const newTask = new Task({
+//         title,
+//         description,
+//         date,
+//         user: req.user.id
+//     })
+    
+//     return res.json({ message: 'Task created!' })
+// }
+
+// export const updateTask = async (req, res) => {
+//     const taskUpdated = await Task.findByIdAndUpdate(req.params.id, req.body, {
+//         new: true
+//     })
+//     if(!taskUpdated) return res.status(404).json({ message: 'Task not found' })
+//     res.json({ message: 'Task updated!' })
+// }
+
+// export const deleteTask = async (req, res) => {
+//     const taskDeleted = await Task.findByIdAndDelete(req.params.id)
+//     if(!taskDeleted) return res.status(404).json({ message: 'Task not found' })
+//     res.status(204).json({ message: 'Task deleted!' })
+// }
+
+//VERSION 2
+
+// import Task from "../models/task.model.js";
+
+// export const getTasks = async (req, res) => {
+//     try {
+//         const tasks = await Task.find({ user: req.user.id }).populate('user');
+//         res.json(tasks);
+//     } catch (err) {
+//         res.status(500).json({ message: err.message });
+//     }
+// };
+
+// export const getTask = async (req, res) => {
+//     try {
+//         const taskFound = await Task.findById(req.params.id).populate('user');
+//         if (!taskFound) return res.status(404).json({ message: 'Task not found' });
+//         res.json(taskFound);
+//     } catch (err) {
+//         res.status(500).json({ message: err.message });
+//     }
+// };
+
+// export const createTask = async (req, res) => {
+//     const { title, description, date } = req.body;
+
+//     try {
+//         const newTask = new Task({
+//             title,
+//             description,
+//             date,
+//             user: req.user.id
+//         });
+
+//         await newTask.save();
+
+//         res.status(201).json({ message: 'Task created!', task: newTask });
+//     } catch (err) {
+//         res.status(500).json({ message: err.message });
+//     }
+// };
+
+// export const updateTask = async (req, res) => {
+//     try {
+//         const taskUpdated = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
+//         if (!taskUpdated) return res.status(404).json({ message: 'Task not found' });
+//         res.json({ message: 'Task updated!', task: taskUpdated });
+//     } catch (err) {
+//         res.status(500).json({ message: err.message });
+//     }
+// };
+
+// export const deleteTask = async (req, res) => {
+//     try {
+//         const taskDeleted = await Task.findByIdAndDelete(req.params.id);
+//         if (!taskDeleted) return res.status(404).json({ message: 'Task not found' });
+//         res.status(204).json({ message: 'Task deleted!' });
+//     } catch (err) {
+//         res.status(500).json({ message: err.message });
+//     }
+// };
+
+import Task from "../models/task.model.js";
+import Workspace from "../models/workspace.model.js";
+
+// Get all tasks, optionally filtered by workspace
+export const getTasks = async (req, res) => {
+    const { workspaceId } = req.query;
 
     try {
-        // //buscar workspace
-        const workspaceFound = await WorkSpace.findById(id);
+        const query = { user: req.user.id };
+        if (workspaceId) {
+            query.workspace = workspaceId;
+        }
 
-        //Verificar que exista
-        if (!workspaceFound) return res.status(404).json('Error! Workspace not found');
+        const tasks = await Task.find(query).populate('user');
+        res.json(tasks);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
 
-        //Crear tarea
+// Get a single task by ID
+export const getTask = async (req, res) => {
+    try {
+        const taskFound = await Task.findById(req.params.id).populate('user');
+        if (!taskFound) return res.status(404).json({ message: 'Task not found' });
+        res.json(taskFound);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// Create a new task
+export const createTask = async (req, res) => {
+    const { title, description, date, workspaceId } = req.body;
+
+    try {
         const newTask = new Task({
             title,
             description,
             date,
             user: req.user.id,
-            workspace: id
-        })
-        //Guardarlo
-        const taskSaved = await newTask.save();
+            workspace: workspaceId || null
+        });
 
-        // Agregar la tarea al workspace
-        workspaceFound.tasks.push(taskSaved._id);
-        await workspaceFound.save()
-        
-        res.status(201).json({ message: 'Task created!' })
-    } catch (error) {
-        res.status(500).json({ message: error.message })
+        await newTask.save();
+
+        if (workspaceId) {
+            const workspace = await Workspace.findById(workspaceId);
+            if (workspace) {
+                workspace.tasks.push(newTask._id);
+                await workspace.save();
+            }
+        }
+
+        res.status(201).json({ message: 'Task created!', task: newTask });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
     }
-}
+};
 
+// Update an existing task
 export const updateTask = async (req, res) => {
-    const taskUpdated = await Task.findByIdAndUpdate(req.params.id, req.body, {
-        new: true
-    })
-    if(!taskUpdated) return res.status(404).json({ message: 'Task not found' })
-    res.json({ message: 'Task updated!' })
-}
+    try {
+        const taskUpdated = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!taskUpdated) return res.status(404).json({ message: 'Task not found' });
+        res.json({ message: 'Task updated!', task: taskUpdated });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
 
+// Delete a task
 export const deleteTask = async (req, res) => {
-    const taskDeleted = await Task.findByIdAndDelete(req.params.id)
-    if(!taskDeleted) return res.status(404).json({ message: 'Task not found' })
-    res.status(204).json({ message: 'Task deleted!' })
-}
+    try {
+        const taskDeleted = await Task.findByIdAndDelete(req.params.id);
+        if (!taskDeleted) return res.status(404).json({ message: 'Task not found' });
+        res.status(204).json({ message: 'Task deleted!' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
 

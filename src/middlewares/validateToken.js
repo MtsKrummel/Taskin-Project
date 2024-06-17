@@ -16,6 +16,7 @@ export const authRequired = (req, res, next) => {
         //Esto significa que del usuario que estoy decodificando, voy a estar guardando todo dentro de req.user, que es la petición que nos llegó y lo guardo ahí porque el todas las rutas tienen request -> login = async (req, res){}, si yo guardo los datos en "req" significa que cuando llame a req.user van a poder acceder al dato que ya se habia guardado el token.
         req.user = user
 
+
         next();
 
     })

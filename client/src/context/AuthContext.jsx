@@ -1,5 +1,6 @@
 import { createContext, useState, useContext, useEffect} from "react";
-import { loginRequest, registerRequest } from "../API/auth";
+import Cookies from "js-cookie";
+import { loginRequest, registerRequest, verifyTokenRequest } from "../API/auth";
 
 export const AuthContext = createContext()
 
@@ -19,6 +20,7 @@ export const AuthProvider = ({ children }) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false)
     const [errors, setErrors] = useState([])
     const [isRegisted, setIsRegisted] = useState(false)
+    const [loading, setLoading] = useState(true)
 
     const signup = async(user) =>{
         try {
@@ -55,6 +57,34 @@ export const AuthProvider = ({ children }) => {
         }
     }, [errors])
 
+    // useEffect(() => {
+    //     async function checkLogin(){
+    //         const cookies = Cookies.get()
+    //         if(!cookies.token){
+    //             setIsAuthenticated(false)
+    //             setLoading(false)
+    //             return setUser(null)
+    //         }
+
+    //         try {
+    //             const res = await verifyTokenRequest(cookies.token)
+    //             if(!res.data){
+    //                 setIsAuthenticated(false)
+    //                 setLoading(false)
+    //                 return
+    //             }
+
+    //             setIsAuthenticated(true)
+    //             setUser(res.data)
+    //         } catch (error) {
+    //             setIsAuthenticated(false)
+    //             setUser(null)
+    //             setLoading(false)
+    //         }
+    //     }
+    //     checkLogin()
+    // },[])
+
     //En value podemos ponerle cualquier valor, pero por lo general se le pasa un objeto {} porque vamos a estar compartiendo varios datos
 
     //Ahora ya tengo un contexto en donde todos los componentes que estén adentro {children} van a poder llamar, tanto el dato del usuario como la función signup para hacer peticiones 
@@ -65,7 +95,7 @@ export const AuthProvider = ({ children }) => {
             user,
             isAuthenticated,
             isRegisted,
-            errors
+            errors,
         }}>
             {children}
         </AuthContext.Provider>
